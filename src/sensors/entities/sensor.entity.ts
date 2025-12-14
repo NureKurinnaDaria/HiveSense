@@ -19,12 +19,12 @@ export class Sensor {
   serial_number: string;
 
   @Column({ length: 50 })
-  type: string; // TEMPERATURE, HUMIDITY, комбінований...
+  type: string; // TEMPERATURE, HUMIDITY, комбінований
 
   @Column({ default: true })
   is_active: boolean;
 
-  // ---------- FK: Warehouse (обовʼязково) ----------
+  // FK: Warehouse (обовʼязково)
   @Column()
   warehouse_id: number;
 
@@ -34,7 +34,7 @@ export class Sensor {
   @JoinColumn({ name: 'warehouse_id' })
   warehouse: Warehouse;
 
-  // ---------- Relations ----------
+  // Relations
   @OneToMany(() => Measurement, (m) => m.sensor)
   measurements: Measurement[];
 

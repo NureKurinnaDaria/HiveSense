@@ -12,7 +12,7 @@ export class Measurement {
   @PrimaryGeneratedColumn()
   measurement_id: number;
 
-  @Column({ type: 'timestamptz' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   measured_at: Date;
 
   @Column({ type: 'decimal', precision: 5, scale: 2 })

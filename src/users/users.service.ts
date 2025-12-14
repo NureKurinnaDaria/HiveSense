@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Warehouse } from '../warehouses/entities/warehouse.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -33,29 +35,30 @@ export class UsersService {
     return user;
   }
 
-  async create(dto: Partial<User>): Promise<User> {
+  async create(dto: CreateUserDto): Promise<User> {
     // якщо передали warehouse_id — перевіряємо що склад існує
     if (dto.warehouse_id != null) {
       const wh = await this.warehouseRepo.findOne({
         where: { warehouse_id: dto.warehouse_id },
       });
-      if (!wh)
+      if (!wh) {
         throw new BadRequestException('Warehouse not found for warehouse_id');
+      }
     }
 
     const entity = this.userRepo.create({
       email: dto.email,
       password: dto.password,
-      full_name: dto.full_name,
-      role: dto.role ?? 'EMPLOYEE',
-      is_active: dto.is_active ?? true,
+      full_name: dto.name, // мапимо name -> full_name
+      role: dto.role, // залишаємо як у DTO (worker/admin/owner)
+      is_active: dto.is_active,
       warehouse_id: dto.warehouse_id ?? null,
     });
 
     return this.userRepo.save(entity);
   }
 
-  async update(user_id: number, dto: Partial<User>): Promise<User> {
+  async update(user_id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(user_id);
 
     if (dto.warehouse_id !== undefined) {
@@ -65,15 +68,15 @@ export class UsersService {
         const wh = await this.warehouseRepo.findOne({
           where: { warehouse_id: dto.warehouse_id },
         });
-        if (!wh)
+        if (!wh) {
           throw new BadRequestException('Warehouse not found for warehouse_id');
+        }
         user.warehouse_id = dto.warehouse_id;
       }
     }
 
     if (dto.email !== undefined) user.email = dto.email;
-    if (dto.password !== undefined) user.password = dto.password;
-    if (dto.full_name !== undefined) user.full_name = dto.full_name;
+    if (dto.name !== undefined) user.full_name = dto.name; // ✅
     if (dto.role !== undefined) user.role = dto.role;
     if (dto.is_active !== undefined) user.is_active = dto.is_active;
 

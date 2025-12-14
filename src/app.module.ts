@@ -7,6 +7,7 @@ import { HoneyBatchesModule } from './honey-batches/honey-batches.module';
 import { SensorsModule } from './sensors/sensors.module';
 import { MeasurementsModule } from './measurements/measurements.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { ThresholdsModule } from './thresholds/thresholds.module';
 
 @Module({
   imports: [
@@ -39,6 +40,8 @@ import { AlertsModule } from './alerts/alerts.module';
     MeasurementsModule,
 
     AlertsModule,
+
+    ThresholdsModule,
   ],
   controllers: [],
   providers: [],

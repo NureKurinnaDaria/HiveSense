@@ -1,8 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Sensor } from '../../sensors/entities/sensor.entity';
 import { HoneyBatch } from '../../honey-batches/entities/honey-batch.entity';
 import { Alert } from '../../alerts/entities/alert.entity';
+import { Threshold } from '../../thresholds/entities/threshold.entity';
 
 @Entity('warehouses')
 export class Warehouse {
@@ -25,6 +32,9 @@ export class Warehouse {
   // Датчики складу
   @OneToMany(() => Sensor, (sensor) => sensor.warehouse)
   sensors: Sensor[];
+
+  @OneToOne(() => Threshold, (t) => t.warehouse)
+  threshold: Threshold;
 
   // Партії меду на складі
   @OneToMany(() => HoneyBatch, (batch) => batch.warehouse)

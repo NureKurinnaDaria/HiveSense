@@ -55,8 +55,6 @@ export class AlertsService {
     await this.alertRepo.remove(alert);
   }
 
-  // --- actions ---
-
   async acknowledge(alert_id: number, user_id: number): Promise<Alert> {
     const alert = await this.findOne(alert_id);
 

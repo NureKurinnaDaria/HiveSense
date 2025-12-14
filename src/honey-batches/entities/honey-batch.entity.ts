@@ -25,9 +25,9 @@ export class HoneyBatch {
   expiration_date: string | null;
 
   @Column({ length: 50, default: 'ACTIVE' })
-  status: string; // ACTIVE | EXPIRED | SOLD | SPOILED ...
+  status: string; // ACTIVE | EXPIRED | SOLD | SPOILED
 
-  // ---------- FK: Warehouse (обовʼязково) ----------
+  // FK: Warehouse (обовʼязково)
   @Column()
   warehouse_id: number;
 

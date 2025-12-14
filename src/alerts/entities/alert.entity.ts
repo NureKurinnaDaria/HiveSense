@@ -15,7 +15,7 @@ export class Alert {
   alert_id: number;
 
   @Column({ length: 50 })
-  type: string; // TEMP_HIGH, TEMP_LOW, HUMIDITY_HIGH...
+  type: string; // TEMP_HIGH, TEMP_LOW, HUMIDITY_HIGH
 
   @Column({ length: 50, default: 'NEW' })
   status: string; // NEW | ACKNOWLEDGED | RESOLVED
@@ -26,7 +26,6 @@ export class Alert {
   @Column({ type: 'timestamptz', nullable: true })
   resolved_at: Date | null;
 
-  // ---------- FK: Warehouse (обовʼязково за схемою) ----------
   @Column()
   warehouse_id: number;
 
@@ -36,7 +35,6 @@ export class Alert {
   @JoinColumn({ name: 'warehouse_id' })
   warehouse: Warehouse;
 
-  // ---------- FK: Sensor (може бути null) ----------
   @Column({ nullable: true })
   sensor_id: number | null;
 
@@ -46,7 +44,6 @@ export class Alert {
   @JoinColumn({ name: 'sensor_id' })
   sensor: Sensor | null;
 
-  // ---------- FK: User (працівник, може бути null) ----------
   @Column({ nullable: true })
   user_id: number | null;
 
