@@ -1,0 +1,34 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersService } from '../users/users.service';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly usersService: UsersService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: process.env.JWT_SECRET || 'dev_secret',
+    });
+  }
+
+  async validate(payload: { sub: number; role: string }) {
+    const id = Number(payload.sub);
+    if (!id) throw new UnauthorizedException('Invalid token payload');
+
+    const user = await this.usersService.findOne(id);
+
+    // Заблокований не має доступу навіть з уже виданим токеном
+    if (!user.is_active) {
+      throw new UnauthorizedException('User is blocked');
+    }
+
+    return {
+      userId: id, // щоб не зламати старі місця
+      id,
+      sub: id,
+      role: user.role, // беремо роль з БД
+    };
+  }
+}

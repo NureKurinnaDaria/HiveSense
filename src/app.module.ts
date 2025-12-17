@@ -8,6 +8,9 @@ import { SensorsModule } from './sensors/sensors.module';
 import { MeasurementsModule } from './measurements/measurements.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { ThresholdsModule } from './thresholds/thresholds.module';
+import { AuthModule } from './auth/auth.module';
+import { AuditModule } from './audit/audit.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -42,6 +45,12 @@ import { ThresholdsModule } from './thresholds/thresholds.module';
     AlertsModule,
 
     ThresholdsModule,
+
+    AuthModule,
+
+    AuditModule,
+
+    ReportsModule,
   ],
   controllers: [],
   providers: [],

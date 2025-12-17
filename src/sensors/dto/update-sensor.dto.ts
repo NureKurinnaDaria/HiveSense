@@ -16,7 +16,7 @@ export class UpdateSensorDto {
   @Length(3, 100)
   serial_number?: string;
 
-  @ApiPropertyOptional({ example: 'TEMPERATURE' })
+  @ApiPropertyOptional({ example: 'COMBINED' })
   @IsOptional()
   @IsIn(['TEMPERATURE', 'HUMIDITY', 'COMBINED'])
   type?: string;

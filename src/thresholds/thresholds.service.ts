@@ -8,12 +8,15 @@ import { Repository } from 'typeorm';
 import { Threshold } from './entities/threshold.entity';
 import { CreateThresholdDto } from './dto/create-threshold.dto';
 import { UpdateThresholdDto } from './dto/update-threshold.dto';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ThresholdsService {
   constructor(
     @InjectRepository(Threshold)
     private readonly thresholdRepo: Repository<Threshold>,
+
+    private readonly auditService: AuditService,
   ) {}
 
   async findAll(): Promise<Threshold[]> {
@@ -32,7 +35,11 @@ export class ThresholdsService {
     return t;
   }
 
-  async create(dto: CreateThresholdDto): Promise<Threshold> {
+  async create(
+    dto: CreateThresholdDto,
+    actor_user_id: number,
+    actor_role: string,
+  ): Promise<Threshold> {
     if (dto.temp_min >= dto.temp_max) {
       throw new BadRequestException('temp_min must be < temp_max');
     }
@@ -54,12 +61,26 @@ export class ThresholdsService {
       updated_at: new Date(),
     });
 
-    return this.thresholdRepo.save(entity);
+    const saved = await this.thresholdRepo.save(entity);
+
+    // AUDIT: CREATE THRESHOLDS
+    await this.auditService.log({
+      actor_user_id,
+      actor_role,
+      action: 'CREATE',
+      entity: 'THRESHOLDS',
+      entity_id: saved.threshold_id,
+      details: `Created thresholds for warehouse_id=${saved.warehouse_id}`,
+    });
+
+    return saved;
   }
 
   async updateByWarehouse(
     warehouse_id: number,
     dto: UpdateThresholdDto,
+    actor_user_id: number,
+    actor_role: string,
   ): Promise<Threshold> {
     const t = await this.findByWarehouse(warehouse_id);
 
@@ -78,11 +99,39 @@ export class ThresholdsService {
     }
 
     Object.assign(t, next, { updated_at: new Date() });
-    return this.thresholdRepo.save(t);
+
+    const saved = await this.thresholdRepo.save(t);
+
+    // AUDIT: UPDATE THRESHOLDS
+    await this.auditService.log({
+      actor_user_id,
+      actor_role,
+      action: 'UPDATE',
+      entity: 'THRESHOLDS',
+      entity_id: saved.threshold_id,
+      details: `Updated thresholds for warehouse_id=${warehouse_id}`,
+    });
+
+    return saved;
   }
 
-  async removeByWarehouse(warehouse_id: number): Promise<void> {
+  async removeByWarehouse(
+    warehouse_id: number,
+    actor_user_id: number,
+    actor_role: string,
+  ): Promise<void> {
     const t = await this.findByWarehouse(warehouse_id);
+
     await this.thresholdRepo.remove(t);
+
+    // AUDIT: DELETE THRESHOLDS
+    await this.auditService.log({
+      actor_user_id,
+      actor_role,
+      action: 'DELETE',
+      entity: 'THRESHOLDS',
+      entity_id: t.threshold_id,
+      details: `Deleted thresholds for warehouse_id=${warehouse_id}`,
+    });
   }
 }

@@ -22,6 +22,7 @@ async function bootstrap() {
     .setTitle('HiveSense API')
     .setDescription('API для системи моніторингу зберігання меду')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

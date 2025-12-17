@@ -13,6 +13,9 @@ import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { Sensor } from '../sensors/entities/sensor.entity';
 import { Threshold } from '../thresholds/entities/threshold.entity';
 import { Alert } from '../alerts/entities/alert.entity';
+import { AuditService } from '../audit/audit.service';
+
+type DbRole = 'EMPLOYEE' | 'ADMIN' | 'OWNER';
 
 @Injectable()
 export class MeasurementsService {
@@ -28,6 +31,8 @@ export class MeasurementsService {
 
     @InjectRepository(Alert)
     private readonly alertRepo: Repository<Alert>,
+
+    private readonly auditService: AuditService,
   ) {}
 
   async findAll(): Promise<Measurement[]> {
@@ -46,15 +51,17 @@ export class MeasurementsService {
     return m;
   }
 
-  async create(dto: CreateMeasurementDto): Promise<Measurement> {
-    // Валідація базової логіки
+  async create(
+    dto: CreateMeasurementDto,
+    actor_user_id: number,
+    actor_role: DbRole,
+  ): Promise<Measurement> {
     if (dto.temperature_c === undefined || dto.humidity_percent === undefined) {
       throw new BadRequestException(
         'temperature_c and humidity_percent are required',
       );
     }
 
-    // Знаходимо сенсор → склад
     const sensor = await this.sensorRepo.findOne({
       where: { sensor_id: dto.sensor_id },
     });
@@ -62,7 +69,6 @@ export class MeasurementsService {
 
     const warehouse_id = sensor.warehouse_id;
 
-    // Зберігаємо вимірювання
     const measuredAt = dto.measured_at ? new Date(dto.measured_at) : new Date();
 
     const measurement = this.measurementRepo.create({
@@ -74,15 +80,22 @@ export class MeasurementsService {
 
     const saved = await this.measurementRepo.save(measurement);
 
-    // Беремо пороги (thresholds) для складу
+    // AUDIT: measurement created
+    await this.auditService.log({
+      actor_user_id,
+      actor_role,
+      action: 'CREATE',
+      entity: 'MEASUREMENTS',
+      entity_id: saved.measurement_id,
+      details: `Measurement created for sensor_id=${saved.sensor_id} (t=${saved.temperature_c}, h=${saved.humidity_percent})`,
+    });
+
     const thresholds = await this.thresholdRepo.findOne({
       where: { warehouse_id },
     });
 
-    // Якщо адмін ще не налаштував пороги — бізнес-логіка не спрацьовує
     if (!thresholds) return saved;
 
-    // Визначаємо типи порушень
     const violations: string[] = [];
 
     if (saved.temperature_c > thresholds.temp_max) violations.push('TEMP_HIGH');
@@ -93,7 +106,7 @@ export class MeasurementsService {
     if (saved.humidity_percent < thresholds.humidity_min)
       violations.push('HUMIDITY_LOW');
 
-    // Антидубль: створюємо NEW лише якщо такого NEW ще нема
+    // створюємо NEW alerts якщо такого NEW ще нема
     for (const type of violations) {
       const existing = await this.alertRepo.findOne({
         where: {
@@ -115,12 +128,20 @@ export class MeasurementsService {
           user_id: null,
         });
 
-        await this.alertRepo.save(alert);
+        const createdAlert = await this.alertRepo.save(alert);
+
+        await this.auditService.log({
+          actor_user_id,
+          actor_role,
+          action: 'CREATE',
+          entity: 'ALERTS',
+          entity_id: createdAlert.alert_id,
+          details: `Auto-created alert type=${createdAlert.type} from measurement_id=${saved.measurement_id}`,
+        });
       }
     }
 
-    // Нормалізація по типах:
-    //    якщо параметр став нормальним — закриваємо тільки відповідні alerts (NEW)
+    // якщо параметр нормальний — закриваємо відповідні NEW alerts
     const violated = new Set(violations);
 
     const humidityNowOk =
@@ -138,7 +159,17 @@ export class MeasurementsService {
         if (a.type === 'HUMIDITY_HIGH' || a.type === 'HUMIDITY_LOW') {
           a.status = 'RESOLVED';
           a.resolved_at = new Date();
-          await this.alertRepo.save(a);
+          const savedAlert = await this.alertRepo.save(a);
+
+          // AUDIT (опційно): alert resolved by normalization
+          await this.auditService.log({
+            actor_user_id,
+            actor_role,
+            action: 'UPDATE',
+            entity: 'ALERTS',
+            entity_id: savedAlert.alert_id,
+            details: `Auto-resolved alert type=${savedAlert.type} by measurement normalization`,
+          });
         }
       }
     }
@@ -157,7 +188,16 @@ export class MeasurementsService {
         if (a.type === 'TEMP_HIGH' || a.type === 'TEMP_LOW') {
           a.status = 'RESOLVED';
           a.resolved_at = new Date();
-          await this.alertRepo.save(a);
+          const savedAlert = await this.alertRepo.save(a);
+
+          await this.auditService.log({
+            actor_user_id,
+            actor_role,
+            action: 'UPDATE',
+            entity: 'ALERTS',
+            entity_id: savedAlert.alert_id,
+            details: `Auto-resolved alert type=${savedAlert.type} by measurement normalization`,
+          });
         }
       }
     }
@@ -168,6 +208,8 @@ export class MeasurementsService {
   async update(
     measurement_id: number,
     dto: UpdateMeasurementDto,
+    actor_user_id: number,
+    actor_role: DbRole,
   ): Promise<Measurement> {
     const m = await this.findOne(measurement_id);
 
@@ -176,11 +218,35 @@ export class MeasurementsService {
       measured_at: dto.measured_at ? new Date(dto.measured_at) : m.measured_at,
     });
 
-    return this.measurementRepo.save(m);
+    const saved = await this.measurementRepo.save(m);
+
+    await this.auditService.log({
+      actor_user_id,
+      actor_role,
+      action: 'UPDATE',
+      entity: 'MEASUREMENTS',
+      entity_id: saved.measurement_id,
+      details: 'Measurement updated',
+    });
+
+    return saved;
   }
 
-  async remove(measurement_id: number): Promise<void> {
+  async remove(
+    measurement_id: number,
+    actor_user_id: number,
+    actor_role: DbRole,
+  ): Promise<void> {
     const m = await this.findOne(measurement_id);
     await this.measurementRepo.remove(m);
+
+    await this.auditService.log({
+      actor_user_id,
+      actor_role,
+      action: 'DELETE',
+      entity: 'MEASUREMENTS',
+      entity_id: measurement_id,
+      details: 'Measurement deleted',
+    });
   }
 }

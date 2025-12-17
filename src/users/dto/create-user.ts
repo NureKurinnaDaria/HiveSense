@@ -1,9 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsEmail,
   IsIn,
   IsInt,
+  IsOptional,
   IsString,
   Length,
   Min,
@@ -24,16 +25,21 @@ export class CreateUserDto {
   @Length(6, 128)
   password: string;
 
-  @ApiProperty({ example: 'worker' })
+  @ApiProperty({ example: 'worker', enum: ['worker', 'admin', 'owner'] })
   @IsIn(['worker', 'admin', 'owner'])
-  role: string;
+  role: 'worker' | 'admin' | 'owner';
 
   @ApiProperty({ example: true })
   @IsBoolean()
   is_active: boolean;
 
-  @ApiProperty({ example: 1 })
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID складу (для EMPLOYEE). Для OWNER може бути відсутнім.',
+    nullable: true,
+  })
+  @IsOptional()
   @IsInt()
   @Min(1)
-  warehouse_id: number;
+  warehouse_id?: number;
 }
