@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -29,32 +30,44 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class HoneyBatchesController {
   constructor(private readonly honeyBatchesService: HoneyBatchesService) {}
 
-  // Перегляд — усі ролі
+  private getActor(req: any) {
+    const raw =
+      req?.user?.id ??
+      req?.user?.userId ??
+      req?.user?.user_id ??
+      req?.user?.sub;
+
+    const actor_user_id = Number(raw);
+    const actor_role = req?.user?.role;
+
+    return { actor_user_id, actor_role };
+  }
+
   @Get()
   @Roles('ADMIN', 'OWNER', 'EMPLOYEE')
   @ApiOperation({ summary: 'Отримати список партій меду' })
-  findAll() {
-    return this.honeyBatchesService.findAll();
+  findAll(@Req() req: any) {
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.honeyBatchesService.findAll(actor_user_id, actor_role);
   }
 
-  // Перегляд — усі ролі
   @Get(':id')
   @Roles('ADMIN', 'OWNER', 'EMPLOYEE')
   @ApiOperation({ summary: 'Отримати партію меду за batch_id' })
   @ApiParam({ name: 'id', description: 'batch_id' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.honeyBatchesService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.honeyBatchesService.findOne(id, actor_user_id, actor_role);
   }
 
-  // Редагування/створення — тільки працівник
   @Post()
   @Roles('EMPLOYEE')
   @ApiOperation({ summary: 'Створити нову партію меду' })
-  create(@Body() dto: CreateHoneyBatchDto) {
-    return this.honeyBatchesService.create(dto);
+  create(@Body() dto: CreateHoneyBatchDto, @Req() req: any) {
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.honeyBatchesService.create(dto, actor_user_id, actor_role);
   }
 
-  // Редагування — тільки працівник
   @Put(':id')
   @Roles('EMPLOYEE')
   @ApiOperation({ summary: 'Оновити партію меду' })
@@ -62,16 +75,18 @@ export class HoneyBatchesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateHoneyBatchDto,
+    @Req() req: any,
   ) {
-    return this.honeyBatchesService.update(id, dto);
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.honeyBatchesService.update(id, dto, actor_user_id, actor_role);
   }
 
-  // Видалення — тільки працівник
   @Delete(':id')
   @Roles('EMPLOYEE')
   @ApiOperation({ summary: 'Видалити партію меду' })
   @ApiParam({ name: 'id', description: 'batch_id' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.honeyBatchesService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.honeyBatchesService.remove(id, actor_user_id, actor_role);
   }
 }

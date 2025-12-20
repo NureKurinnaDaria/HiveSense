@@ -9,6 +9,7 @@ import {
   Put,
   Req,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -31,14 +32,20 @@ export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
   private getActor(req: any) {
+    // пріоритет userId (бо JwtStrategy гарантовано його повертає)
     const raw =
-      req?.user?.id ??
       req?.user?.userId ??
+      req?.user?.id ??
       req?.user?.user_id ??
       req?.user?.sub;
 
     const actor_user_id = Number(raw);
     const actor_role = req?.user?.role;
+
+    // якщо тут NaN — краще одразу зупинити, ніж писати null в БД
+    if (!Number.isFinite(actor_user_id) || actor_user_id <= 0) {
+      throw new BadRequestException('Invalid actor_user_id from JWT');
+    }
 
     return { actor_user_id, actor_role };
   }

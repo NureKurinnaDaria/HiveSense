@@ -14,21 +14,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: number; role: string }) {
-    const id = Number(payload.sub);
-    if (!id) throw new UnauthorizedException('Invalid token payload');
+    const id = Number(payload?.sub);
+
+    if (!Number.isFinite(id) || id <= 0) {
+      throw new UnauthorizedException('Invalid token payload');
+    }
 
     const user = await this.usersService.findOne(id);
 
-    // Заблокований не має доступу навіть з уже виданим токеном
     if (!user.is_active) {
       throw new UnauthorizedException('User is blocked');
     }
 
     return {
-      userId: id, // щоб не зламати старі місця
+      userId: id,
       id,
       sub: id,
-      role: user.role, // беремо роль з БД
+      role: user.role, // роль беремо з БД
     };
   }
 }

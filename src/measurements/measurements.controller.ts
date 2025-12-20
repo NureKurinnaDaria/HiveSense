@@ -47,16 +47,18 @@ export class MeasurementsController {
   @Get()
   @Roles('ADMIN', 'OWNER', 'EMPLOYEE')
   @ApiOperation({ summary: 'Отримати список вимірювань' })
-  findAll() {
-    return this.measurementsService.findAll();
+  findAll(@Req() req: any) {
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.measurementsService.findAll(actor_user_id, actor_role);
   }
 
   @Get(':id')
   @Roles('ADMIN', 'OWNER', 'EMPLOYEE')
   @ApiOperation({ summary: 'Отримати вимірювання за measurement_id' })
   @ApiParam({ name: 'id', description: 'measurement_id' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.measurementsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const { actor_user_id, actor_role } = this.getActor(req);
+    return this.measurementsService.findOne(id, actor_user_id, actor_role);
   }
 
   @Post()

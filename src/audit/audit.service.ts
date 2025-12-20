@@ -17,7 +17,8 @@ export type AuditEntity =
   | 'WAREHOUSES'
   | 'THRESHOLDS'
   | 'MEASUREMENTS'
-  | 'ALERTS';
+  | 'ALERTS'
+  | 'HONEY_BATCHES';
 
 @Injectable()
 export class AuditService {
@@ -26,27 +27,22 @@ export class AuditService {
     private readonly auditRepo: Repository<AuditLog>,
   ) {}
 
-  // щоб date-only фільтри працювали "в межах дня"
   private startOfDay(dateStr: string): Date {
-    // local time: YYYY-MM-DDT00:00:00.000
     return new Date(`${dateStr}T00:00:00.000`);
   }
 
   private endOfDay(dateStr: string): Date {
-    // local time: YYYY-MM-DDT23:59:59.999
     return new Date(`${dateStr}T23:59:59.999`);
   }
 
-  // записати подію в audit_logs
   async log(params: {
     actor_user_id: number;
-    actor_role: string; // ADMIN / OWNER / EMPLOYEE
+    actor_role: string;
     action: AuditAction;
     entity: AuditEntity;
     entity_id?: number | null;
     details?: string | null;
   }): Promise<void> {
-    // захист від падіння БД через NOT NULL
     if (!params.actor_user_id) {
       throw new BadRequestException('actor_user_id is required for audit log');
     }
@@ -63,12 +59,11 @@ export class AuditService {
     await this.auditRepo.save(row);
   }
 
-  // отримати події з фільтрами
   async findAll(filters?: {
     entity?: string;
     action?: string;
-    from?: string; // YYYY-MM-DD
-    to?: string; // YYYY-MM-DD
+    from?: string;
+    to?: string;
   }) {
     const qb = this.auditRepo
       .createQueryBuilder('a')
@@ -82,7 +77,6 @@ export class AuditService {
       qb.andWhere('a.action = :action', { action: filters.action });
     }
 
-    // правильна логіка дат
     if (filters?.from) {
       qb.andWhere('a.created_at >= :from', {
         from: this.startOfDay(filters.from),
@@ -90,9 +84,7 @@ export class AuditService {
     }
 
     if (filters?.to) {
-      qb.andWhere('a.created_at <= :to', {
-        to: this.endOfDay(filters.to),
-      });
+      qb.andWhere('a.created_at <= :to', { to: this.endOfDay(filters.to) });
     }
 
     return qb.getMany();

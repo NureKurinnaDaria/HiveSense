@@ -7,11 +7,12 @@ import { Measurement } from './entities/measurement.entity';
 import { Sensor } from '../sensors/entities/sensor.entity';
 import { Threshold } from '../thresholds/entities/threshold.entity';
 import { Alert } from '../alerts/entities/alert.entity';
+import { User } from '../users/entities/user.entity';
 import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Measurement, Sensor, Threshold, Alert]),
+    TypeOrmModule.forFeature([Measurement, Sensor, Threshold, Alert, User]),
     AuditModule,
   ],
   controllers: [MeasurementsController],

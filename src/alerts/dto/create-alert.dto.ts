@@ -6,7 +6,6 @@ export class CreateAlertDto {
   @IsIn(['TEMP_HIGH', 'TEMP_LOW', 'HUMIDITY_HIGH', 'HUMIDITY_LOW'])
   type: string;
 
-  // За схемою warehouse_id обов'язковий
   @ApiProperty({ example: 1 })
   @IsInt()
   @Min(1)
@@ -17,10 +16,4 @@ export class CreateAlertDto {
   @IsInt()
   @Min(1)
   sensor_id?: number | null;
-
-  @ApiPropertyOptional({ example: 5, nullable: true })
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  user_id?: number | null;
 }
