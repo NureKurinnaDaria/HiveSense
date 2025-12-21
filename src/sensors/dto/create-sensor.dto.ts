@@ -16,7 +16,7 @@ export class CreateSensorDto {
   serial_number: string;
 
   @ApiProperty({ example: 'COMBINED' })
-  @IsIn(['TEMPERATURE', 'HUMIDITY', 'COMBINED'])
+  @IsIn(['COMBINED'])
   type: string;
 
   @ApiPropertyOptional({ example: true })

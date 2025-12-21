@@ -34,7 +34,7 @@ export class CreateHoneyBatchDto {
 
   @ApiPropertyOptional({ example: 'ACTIVE' })
   @IsOptional()
-  @IsIn(['ACTIVE', 'INACTIVE', 'EXPIRED', 'AT_RISK'])
+  @IsIn(['ACTIVE', 'INACTIVE'])
   status?: string;
 
   @ApiProperty({ example: 1 })

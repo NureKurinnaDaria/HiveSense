@@ -218,7 +218,7 @@ export class MeasurementsService {
           resolved_at: null,
           warehouse_id,
           sensor_id: sensor.sensor_id,
-          user_id: null, // авто-алерт не призначаємо на конкретного працівника
+          user_id: null,
         });
 
         const createdAlert = await this.alertRepo.save(alert);
@@ -335,9 +335,8 @@ export class MeasurementsService {
       });
       if (!nextSensor) throw new NotFoundException('Sensor not found');
 
-      // якщо хочеш обмежити адміну/овнеру “логічно”, можна додати додаткові перевірки
       m.sensor_id = dto.sensor_id;
-      // перезавантажимо relation (не обов'язково, але корисно)
+      // перезавантажимо relation
       m.sensor = nextSensor;
     }
 

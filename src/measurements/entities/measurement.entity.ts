@@ -21,7 +21,7 @@ export class Measurement {
   @Column({ type: 'decimal', precision: 5, scale: 2 })
   humidity_percent: number;
 
-  // ---------- FK: Sensor (обовʼязково) ----------
+  // FK: Sensor (обовʼязково)
   @Column()
   sensor_id: number;
 

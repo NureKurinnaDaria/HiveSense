@@ -18,7 +18,7 @@ export class UpdateSensorDto {
 
   @ApiPropertyOptional({ example: 'COMBINED' })
   @IsOptional()
-  @IsIn(['TEMPERATURE', 'HUMIDITY', 'COMBINED'])
+  @IsIn(['COMBINED'])
   type?: string;
 
   @ApiPropertyOptional({ example: true })

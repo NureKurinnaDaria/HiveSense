@@ -8,7 +8,7 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Global validation (DTO validation реально працює)
+  // Global validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // прибирає зайві поля, яких нема в DTO

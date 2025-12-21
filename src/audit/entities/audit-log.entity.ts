@@ -24,7 +24,7 @@ export class AuditLog {
   // що зробили
   @Column({ length: 30 })
   action: string;
-  // CREATE / UPDATE / DELETE / BLOCK / UNBLOCK / ROLE_CHANGE / LOGIN
+  // CREATE / UPDATE / DELETE / BLOCK / UNBLOCK
 
   // над чим
   @Column({ length: 30 })

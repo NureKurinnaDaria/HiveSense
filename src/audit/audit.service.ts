@@ -3,14 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuditLog } from './entities/audit-log.entity';
 
-export type AuditAction =
-  | 'CREATE'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'BLOCK'
-  | 'UNBLOCK'
-  | 'ROLE_CHANGE'
-  | 'LOGIN';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'BLOCK' | 'UNBLOCK';
 
 export type AuditEntity =
   | 'USERS'

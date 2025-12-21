@@ -130,7 +130,7 @@ export class AlertsService {
       resolved_at: null,
       warehouse_id: dto.warehouse_id,
       sensor_id: dto.sensor_id ?? null,
-      user_id: actor_user_id, // ✅ тільки з JWT
+      user_id: actor_user_id, // тільки з JWT
     });
 
     const saved = await this.alertRepo.save(entity);
