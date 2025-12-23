@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { UsersModule } from './users/users.module';
 import { WarehousesModule } from './warehouses/warehouses.module';
 import { HoneyBatchesModule } from './honey-batches/honey-batches.module';
@@ -14,42 +15,42 @@ import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
-    // Читаємо .env
+    // Читаємо .env та Environment Variables
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
-    // Підключення бази даних PostgreSQL через TypeORM
+    // Підключення бази даних PostgreSQL через DATABASE_URL (Render)
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
 
-      autoLoadEntities: true, // автоматично підключає всі Entities
-      synchronize: true, // автоматично створює таблиці
+      // В Render задаєш DATABASE_URL (Internal Database URL),
+      // Локально можеш також задати DATABASE_URL у .env
+      url: process.env.DATABASE_URL,
+
+      autoLoadEntities: true,
+      synchronize: true,
+
+      // Render/Postgres часто вимагає SSL у продакшні
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
+      extra:
+        process.env.NODE_ENV === 'production'
+          ? { ssl: { rejectUnauthorized: false } }
+          : {},
     }),
 
     UsersModule,
-
     WarehousesModule,
-
     HoneyBatchesModule,
-
     SensorsModule,
-
     MeasurementsModule,
-
     AlertsModule,
-
     ThresholdsModule,
-
     AuthModule,
-
     AuditModule,
-
     ReportsModule,
   ],
   controllers: [],
