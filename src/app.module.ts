@@ -12,34 +12,26 @@ import { ThresholdsModule } from './thresholds/thresholds.module';
 import { AuthModule } from './auth/auth.module';
 import { AuditModule } from './audit/audit.module';
 import { ReportsModule } from './reports/reports.module';
+import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
   imports: [
-    // Читаємо .env та Environment Variables
+    // .env / Render env vars
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
-    // Підключення бази даних PostgreSQL через DATABASE_URL (Render)
+    // Postgres через DATABASE_URL (Render)
     TypeOrmModule.forRoot({
       type: 'postgres',
-
-      // В Render задаєш DATABASE_URL (Internal Database URL),
-      // Локально можеш також задати DATABASE_URL у .env
       url: process.env.DATABASE_URL,
+
+      // Завжди SSL (для Render)
+      ssl: { rejectUnauthorized: false },
+      extra: { ssl: { rejectUnauthorized: false } },
 
       autoLoadEntities: true,
       synchronize: true,
-
-      // Render/Postgres часто вимагає SSL у продакшні
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : false,
-      extra:
-        process.env.NODE_ENV === 'production'
-          ? { ssl: { rejectUnauthorized: false } }
-          : {},
     }),
 
     UsersModule,
@@ -52,8 +44,7 @@ import { ReportsModule } from './reports/reports.module';
     AuthModule,
     AuditModule,
     ReportsModule,
+    MqttModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
