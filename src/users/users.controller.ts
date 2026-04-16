@@ -52,6 +52,14 @@ export class UsersController {
     return { actor_user_id, actor_role };
   }
 
+  @Get('me')
+  @Roles('ADMIN', 'OWNER', 'EMPLOYEE')
+  @ApiOperation({ summary: 'Отримати поточного користувача' })
+  getMe(@Req() req: any) {
+    const { actor_user_id } = this.getActor(req);
+    return this.usersService.findOne(actor_user_id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Отримати список користувачів' })
   findAll() {
