@@ -8,11 +8,13 @@ import { HoneyBatch } from './entities/honey-batch.entity';
 import { Warehouse } from '../warehouses/entities/warehouse.entity';
 import { User } from '../users/entities/user.entity';
 import { AuditModule } from '../audit/audit.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([HoneyBatch, Warehouse, User]),
     AuditModule,
+    UsersModule,
   ],
   controllers: [HoneyBatchesController],
   providers: [HoneyBatchesService],

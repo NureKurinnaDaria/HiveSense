@@ -61,7 +61,7 @@ export class HoneyBatchesController {
   }
 
   @Post()
-  @Roles('EMPLOYEE')
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Створити нову партію меду' })
   create(@Body() dto: CreateHoneyBatchDto, @Req() req: any) {
     const { actor_user_id, actor_role } = this.getActor(req);
@@ -69,7 +69,7 @@ export class HoneyBatchesController {
   }
 
   @Put(':id')
-  @Roles('EMPLOYEE')
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Оновити партію меду' })
   @ApiParam({ name: 'id', description: 'batch_id' })
   update(
@@ -82,7 +82,7 @@ export class HoneyBatchesController {
   }
 
   @Delete(':id')
-  @Roles('EMPLOYEE')
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Видалити партію меду' })
   @ApiParam({ name: 'id', description: 'batch_id' })
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
