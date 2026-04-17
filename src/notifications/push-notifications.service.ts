@@ -40,17 +40,25 @@ export class PushNotificationsService {
     body: string;
     data?: Record<string, string>;
   }) {
-    const messageId = await getMessaging().send({
-      token: params.token,
-      notification: {
-        title: params.title,
-        body: params.body,
-      },
-      data: params.data ?? {},
-    });
+    try {
+      const messageId = await getMessaging().send({
+        token: params.token,
+        notification: {
+          title: params.title,
+          body: params.body,
+        },
+        data: params.data ?? {},
+      });
 
-    this.logger.log(`Push sent successfully: ${messageId}`);
-    return messageId;
+      this.logger.log(`Push sent successfully: ${messageId}`);
+      return messageId;
+    } catch (error: any) {
+      this.logger.error(
+        'Firebase send error',
+        error?.stack || error?.message || String(error),
+      );
+      throw error;
+    }
   }
 
   async sendToWarehouseUsers(params: {
@@ -78,8 +86,11 @@ export class PushNotificationsService {
           body: params.body,
           data: params.data,
         });
-      } catch (error) {
-        this.logger.warn(`Push failed for token: ${token}`);
+      } catch (error: any) {
+        this.logger.error(
+          `Push failed for token: ${token}`,
+          error?.stack || error?.message || String(error),
+        );
       }
     }
   }
