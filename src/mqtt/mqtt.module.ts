@@ -6,9 +6,13 @@ import { Sensor } from '../sensors/entities/sensor.entity';
 import { Measurement } from '../measurements/entities/measurement.entity';
 import { Threshold } from '../thresholds/entities/threshold.entity';
 import { Alert } from '../alerts/entities/alert.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Sensor, Measurement, Threshold, Alert])],
+  imports: [
+    TypeOrmModule.forFeature([Sensor, Measurement, Threshold, Alert]),
+    NotificationsModule,
+  ],
   providers: [MqttService],
   exports: [MqttService],
 })

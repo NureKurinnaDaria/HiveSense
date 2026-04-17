@@ -54,3 +54,5 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+hivesensemobile-firebase-adminsdk-fbsvc-502b0be3a5.json

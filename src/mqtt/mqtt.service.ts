@@ -7,6 +7,7 @@ import { Sensor } from '../sensors/entities/sensor.entity';
 import { Measurement } from '../measurements/entities/measurement.entity';
 import { Threshold } from '../thresholds/entities/threshold.entity';
 import { Alert } from '../alerts/entities/alert.entity';
+import { PushNotificationsService } from '../notifications/push-notifications.service';
 
 type TelemetryPayload = {
   temperature: number;
@@ -30,6 +31,8 @@ export class MqttService implements OnModuleInit {
 
     @InjectRepository(Alert)
     private readonly alertRepo: Repository<Alert>,
+
+    private readonly pushNotificationsService: PushNotificationsService,
   ) {}
 
   onModuleInit() {
@@ -192,7 +195,7 @@ export class MqttService implements OnModuleInit {
 
       if (c.isBad) {
         if (!existingOpen) {
-          await this.alertRepo.save(
+          const createdAlert = await this.alertRepo.save(
             this.alertRepo.create({
               type: c.type,
               status: 'NEW',
@@ -203,6 +206,19 @@ export class MqttService implements OnModuleInit {
               user_id: null,
             }),
           );
+
+          await this.pushNotificationsService.sendToWarehouseUsers({
+            warehouse_id: sensor.warehouse_id,
+            title: 'Нова тривога',
+            body: `Виникла тривога ${createdAlert.type} для датчика #${sensor.sensor_id}`,
+            data: {
+              alertId: String(createdAlert.alert_id),
+              status: createdAlert.status,
+              type: createdAlert.type,
+              warehouseId: String(createdAlert.warehouse_id),
+              sensorId: String(createdAlert.sensor_id),
+            },
+          });
 
           this.logger.warn(
             `ALERT CREATED type=${c.type} warehouse_id=${sensor.warehouse_id} sensor_id=${sensor.sensor_id}`,
@@ -219,6 +235,19 @@ export class MqttService implements OnModuleInit {
             alert.resolved_at = new Date();
 
             const savedAlert = await this.alertRepo.save(alert);
+
+            await this.pushNotificationsService.sendToWarehouseUsers({
+              warehouse_id: sensor.warehouse_id,
+              title: 'Тривогу закрито',
+              body: `Тривога ${savedAlert.type} для датчика #${sensor.sensor_id} автоматично закрита`,
+              data: {
+                alertId: String(savedAlert.alert_id),
+                status: savedAlert.status,
+                type: savedAlert.type,
+                warehouseId: String(savedAlert.warehouse_id),
+                sensorId: String(savedAlert.sensor_id),
+              },
+            });
 
             this.logger.log(
               `ALERT RESOLVED type=${savedAlert.type} alert_id=${savedAlert.alert_id}`,

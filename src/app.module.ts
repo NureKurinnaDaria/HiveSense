@@ -13,6 +13,9 @@ import { AuthModule } from './auth/auth.module';
 import { AuditModule } from './audit/audit.module';
 import { ReportsModule } from './reports/reports.module';
 import { MqttModule } from './mqtt/mqtt.module';
+import { PushNotificationsService } from './notifications/push-notifications.service';
+import { User } from './users/entities/user.entity';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -34,6 +37,8 @@ import { MqttModule } from './mqtt/mqtt.module';
       synchronize: true,
     }),
 
+    TypeOrmModule.forFeature([User]),
+
     UsersModule,
     WarehousesModule,
     HoneyBatchesModule,
@@ -45,6 +50,8 @@ import { MqttModule } from './mqtt/mqtt.module';
     AuditModule,
     ReportsModule,
     MqttModule,
+    NotificationsModule,
   ],
+  providers: [PushNotificationsService],
 })
 export class AppModule {}
