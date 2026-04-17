@@ -170,17 +170,28 @@ export class MqttService implements OnModuleInit {
     ];
 
     for (const c of checks) {
-      const existing = await this.alertRepo.findOne({
-        where: {
-          type: c.type,
-          status: 'NEW',
-          warehouse_id: sensor.warehouse_id,
-          sensor_id: sensor.sensor_id,
-        },
+      const openAlerts = await this.alertRepo.find({
+        where: [
+          {
+            type: c.type,
+            status: 'NEW',
+            warehouse_id: sensor.warehouse_id,
+            sensor_id: sensor.sensor_id,
+          },
+          {
+            type: c.type,
+            status: 'ACKNOWLEDGED',
+            warehouse_id: sensor.warehouse_id,
+            sensor_id: sensor.sensor_id,
+          },
+        ],
+        order: { alert_id: 'DESC' },
       });
 
+      const existingOpen = openAlerts[0];
+
       if (c.isBad) {
-        if (!existing) {
+        if (!existingOpen) {
           await this.alertRepo.save(
             this.alertRepo.create({
               type: c.type,
@@ -192,22 +203,27 @@ export class MqttService implements OnModuleInit {
               user_id: null,
             }),
           );
+
           this.logger.warn(
             `ALERT CREATED type=${c.type} warehouse_id=${sensor.warehouse_id} sensor_id=${sensor.sensor_id}`,
           );
         } else {
-          this.logger.log(`ALERT ALREADY EXISTS type=${c.type} (NEW)`);
+          this.logger.log(
+            `ALERT ALREADY EXISTS type=${c.type} (status=${existingOpen.status})`,
+          );
         }
       } else {
-        // стало нормально — закриваємо існуючу NEW тривогу
-        if (existing) {
-          existing.status = 'RESOLVED';
-          existing.resolved_at = new Date();
-          await this.alertRepo.save(existing);
+        if (openAlerts.length > 0) {
+          for (const alert of openAlerts) {
+            alert.status = 'RESOLVED';
+            alert.resolved_at = new Date();
 
-          this.logger.log(
-            `ALERT RESOLVED type=${c.type} warehouse_id=${sensor.warehouse_id} sensor_id=${sensor.sensor_id}`,
-          );
+            const savedAlert = await this.alertRepo.save(alert);
+
+            this.logger.log(
+              `ALERT RESOLVED type=${savedAlert.type} alert_id=${savedAlert.alert_id}`,
+            );
+          }
         }
       }
     }

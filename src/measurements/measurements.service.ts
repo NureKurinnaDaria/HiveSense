@@ -241,11 +241,18 @@ export class MeasurementsService {
       !violated.has('HUMIDITY_HIGH') && !violated.has('HUMIDITY_LOW');
     if (humidityNowOk) {
       const activeHumidity = await this.alertRepo.find({
-        where: {
-          status: 'NEW',
-          warehouse_id,
-          sensor_id: sensor.sensor_id,
-        },
+        where: [
+          {
+            status: 'NEW',
+            warehouse_id,
+            sensor_id: sensor.sensor_id,
+          },
+          {
+            status: 'ACKNOWLEDGED',
+            warehouse_id,
+            sensor_id: sensor.sensor_id,
+          },
+        ],
       });
 
       for (const a of activeHumidity) {
@@ -269,11 +276,18 @@ export class MeasurementsService {
     const tempNowOk = !violated.has('TEMP_HIGH') && !violated.has('TEMP_LOW');
     if (tempNowOk) {
       const activeTemp = await this.alertRepo.find({
-        where: {
-          status: 'NEW',
-          warehouse_id,
-          sensor_id: sensor.sensor_id,
-        },
+        where: [
+          {
+            status: 'NEW',
+            warehouse_id,
+            sensor_id: sensor.sensor_id,
+          },
+          {
+            status: 'ACKNOWLEDGED',
+            warehouse_id,
+            sensor_id: sensor.sensor_id,
+          },
+        ],
       });
 
       for (const a of activeTemp) {
