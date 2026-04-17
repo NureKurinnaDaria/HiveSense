@@ -33,6 +33,9 @@ export class User {
   @Column({ nullable: true })
   warehouse_id: number | null;
 
+  @Column({ type: 'text', nullable: true })
+  fcm_token: string | null;
+
   @ManyToOne(() => Warehouse, (warehouse) => warehouse.users, {
     nullable: true,
     onDelete: 'SET NULL',

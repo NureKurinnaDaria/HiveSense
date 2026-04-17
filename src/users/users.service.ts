@@ -60,6 +60,12 @@ export class UsersService {
     return user;
   }
 
+  async saveFcmToken(user_id: number, fcmToken: string): Promise<User> {
+    const user = await this.findOne(user_id);
+    user.fcm_token = fcmToken;
+    return this.userRepo.save(user);
+  }
+
   async createByActor(
     dto: CreateUserDto,
     actor_user_id: number,

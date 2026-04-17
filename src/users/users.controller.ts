@@ -26,6 +26,7 @@ import { UpdateUserDto } from './dto/update-user';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { SaveFcmTokenDto } from './dto/save-fcm-token';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -58,6 +59,14 @@ export class UsersController {
   getMe(@Req() req: any) {
     const { actor_user_id } = this.getActor(req);
     return this.usersService.findOne(actor_user_id);
+  }
+
+  @Post('me/fcm-token')
+  @Roles('ADMIN', 'OWNER', 'EMPLOYEE')
+  @ApiOperation({ summary: 'Зберегти FCM token поточного користувача' })
+  saveMyFcmToken(@Req() req: any, @Body() dto: SaveFcmTokenDto) {
+    const { actor_user_id } = this.getActor(req);
+    return this.usersService.saveFcmToken(actor_user_id, dto.fcmToken);
   }
 
   @Get()
