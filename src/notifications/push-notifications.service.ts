@@ -43,11 +43,14 @@ export class PushNotificationsService {
     try {
       const messageId = await getMessaging().send({
         token: params.token,
-        notification: {
+        android: {
+          priority: 'high',
+        },
+        data: {
           title: params.title,
           body: params.body,
+          ...(params.data ?? {}),
         },
-        data: params.data ?? {},
       });
 
       this.logger.log(`Push sent successfully: ${messageId}`);
