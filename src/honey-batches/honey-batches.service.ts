@@ -92,14 +92,16 @@ export class HoneyBatchesService {
     throw new ForbiddenException('Forbidden');
   }
 
-  // Only ADMIN can create honey batches.
+  // Only ADMIN and OWNER can create honey batches.
   async create(
     dto: CreateHoneyBatchDto,
     actor_user_id: number,
     actor_role: DbRole,
   ): Promise<HoneyBatch> {
-    if (actor_role !== 'ADMIN') {
-      throw new ForbiddenException('Only ADMIN can create honey batches');
+    if (actor_role !== 'ADMIN' && actor_role !== 'OWNER') {
+      throw new ForbiddenException(
+        'Only ADMIN or OWNER can create honey batches',
+      );
     }
 
     await this.ensureWarehouseExists(dto.warehouse_id);
@@ -127,15 +129,17 @@ export class HoneyBatchesService {
     return this.findOne(saved.batch_id, actor_user_id, actor_role);
   }
 
-  // Only ADMIN can update honey batches.
+  // Only ADMIN and OWNER can update honey batches.
   async update(
     batch_id: number,
     dto: UpdateHoneyBatchDto,
     actor_user_id: number,
     actor_role: DbRole,
   ): Promise<HoneyBatch> {
-    if (actor_role !== 'ADMIN') {
-      throw new ForbiddenException('Only ADMIN can update honey batches');
+    if (actor_role !== 'ADMIN' && actor_role !== 'OWNER') {
+      throw new ForbiddenException(
+        'Only ADMIN or OWNER can update honey batches',
+      );
     }
 
     const batch = await this.honeyBatchRepo.findOne({
@@ -188,14 +192,16 @@ export class HoneyBatchesService {
     return this.findOne(saved.batch_id, actor_user_id, actor_role);
   }
 
-  // Only ADMIN can delete honey batches.
+  // Only ADMIN and OWNER can delete honey batches.
   async remove(
     batch_id: number,
     actor_user_id: number,
     actor_role: DbRole,
   ): Promise<void> {
-    if (actor_role !== 'ADMIN') {
-      throw new ForbiddenException('Only ADMIN can delete honey batches');
+    if (actor_role !== 'ADMIN' && actor_role !== 'OWNER') {
+      throw new ForbiddenException(
+        'Only ADMIN or OWNER can delete honey batches',
+      );
     }
 
     const batch = await this.honeyBatchRepo.findOne({
