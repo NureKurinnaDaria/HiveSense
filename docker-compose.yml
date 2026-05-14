@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: hivesense
+      POSTGRES_USER: hivesense
+      POSTGRES_PASSWORD: hivesense_pass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hivesense']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    platform: linux/amd64
+    environment:
+      DATABASE_URL: postgres://hivesense:hivesense_pass@postgres:5432/hivesense
+      JWT_SECRET: supersecretkey
+      NODE_ENV: production
+      TZ: Europe/Kyiv
+      DB_SSL: 'false'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      replicas: 1
+
+  nginx:
+    image: nginx:alpine
+    platform: linux/amd64
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

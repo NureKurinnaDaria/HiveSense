@@ -28,11 +28,12 @@ import { NotificationsModule } from './notifications/notifications.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-
-      // Завжди SSL (для Render)
-      ssl: { rejectUnauthorized: false },
-      extra: { ssl: { rejectUnauthorized: false } },
-
+      ssl:
+        process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+      extra:
+        process.env.DB_SSL === 'false'
+          ? {}
+          : { ssl: { rejectUnauthorized: false } },
       autoLoadEntities: true,
       synchronize: true,
     }),
